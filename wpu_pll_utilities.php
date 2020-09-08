@@ -3,7 +3,7 @@
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 0.1.0
+Version: 0.1.1
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -11,7 +11,7 @@ License URI: http://opensource.org/licenses/MIT
 */
 
 class WPUPllUtilities {
-    private $excluded_dirs = array(
+    private $excluded_folders = array(
         'node_modules',
         'gulp',
         'assets'
@@ -27,6 +27,7 @@ class WPUPllUtilities {
         if (!isset($_GET['page']) || $_GET['page'] != 'mlang_strings') {
             return;
         }
+        $this->excluded_folders = apply_filters('wpupllutilities__excluded_folders', $this->excluded_folders);
         $this->scan_folders();
     }
 
@@ -68,7 +69,7 @@ class WPUPllUtilities {
 
         foreach (glob($base . '*', GLOB_ONLYDIR | GLOB_NOSORT | GLOB_MARK) as $dir) {
             $dirname = basename($dir);
-            if (in_array($dirname, $this->excluded_dirs)) {
+            if (in_array($dirname, $this->excluded_folders)) {
                 continue;
             }
             $dirFiles = $this->glob_recursive($dir, $pattern, $flags);

@@ -2,7 +2,9 @@
 
 Utilities for Polylang
 
-## Scan a folder for translations
+## Help
+
+### Scan a folder for translations
 
 ```php
 add_filter('wpupllutilities__folders_to_scan','example_wpupllutilities__folders_to_scan',10,1);
@@ -15,3 +17,7 @@ function example_wpupllutilities__folders_to_scan($folders){
 ## About
 
 * Big thanks to theme-translation-for-polylang.
+
+## Roadmap
+
+- [ ] Add optional auto-redirection to same page in correct language.
