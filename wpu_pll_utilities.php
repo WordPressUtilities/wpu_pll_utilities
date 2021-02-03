@@ -3,7 +3,7 @@
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 0.1.2
+Version: 0.1.3
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -98,7 +98,7 @@ class WPUPllUtilities {
         /* Register in PLL */
         foreach ($master_strings as $context => $strings) {
             foreach ($strings as $string) {
-                pll_register_string($string, $string, $context);
+                pll_register_string($string, $string, $context, strlen($string) > 30);
             }
         }
     }
