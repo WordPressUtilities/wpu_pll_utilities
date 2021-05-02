@@ -3,7 +3,7 @@
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 0.1.3
+Version: 0.2.0
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -19,6 +19,9 @@ class WPUPllUtilities {
     public function __construct() {
         add_action('plugins_loaded', array(&$this, 'plugins_loaded'));
         add_action('admin_menu', array(&$this, 'admin_menu'));
+        add_filter('wpu_options_boxes', array(&$this, 'wpu_options_boxes'));
+        add_filter('wpu_options_fields', array(&$this, 'wpu_options_fields'));
+        add_filter('wputh_translated_url', array(&$this, 'wputh_translated_url'), 50, 2);
     }
 
     public function plugins_loaded() {
@@ -31,6 +34,55 @@ class WPUPllUtilities {
         $this->excluded_folders = apply_filters('wpupllutilities__excluded_folders', $this->excluded_folders);
         $this->scan_folders();
     }
+
+    /* ----------------------------------------------------------
+      Options
+    ---------------------------------------------------------- */
+
+    /* Boxes */
+    public function wpu_options_boxes($boxes) {
+        $boxes['wpu_pll_utilities'] = array(
+            'name' => 'WPU Pll Utilities'
+        );
+        return $boxes;
+    }
+
+    /* Fields */
+    public function wpu_options_fields($options) {
+
+        /* Hide languages */
+        $poly_langs = pll_the_languages(array(
+            'raw' => 1,
+            'echo' => 0
+        ));
+        foreach ($poly_langs as $code => $lang) {
+            $options['wpu_pll_utilities__hide__' . $code] = array(
+                'label' => sprintf('Hide %s', $lang['name']),
+                'box' => 'wpu_pll_utilities',
+                'type' => 'checkbox'
+            );
+        }
+        return $options;
+    }
+
+    /* ----------------------------------------------------------
+      WPUTheme Hooks
+    ---------------------------------------------------------- */
+
+    public function wputh_translated_url($display_languages, $current_url) {
+        $enabled_languages = array();
+        foreach ($display_languages as $code => $lang) {
+            $is_disabled = get_option('wpu_pll_utilities__hide__' . $code);
+            if (!$is_disabled) {
+                $enabled_languages[$code] = $lang;
+            }
+        }
+        return $enabled_languages;
+    }
+
+    /* ----------------------------------------------------------
+      Scan
+    ---------------------------------------------------------- */
 
     public function scan_folders() {
         $folders_to_scan = apply_filters('wpupllutilities__folders_to_scan', array());
@@ -113,6 +165,10 @@ class WPUPllUtilities {
 }
 
 $WPUPllUtilities = new WPUPllUtilities();
+
+/* ----------------------------------------------------------
+  Hook on gettext
+---------------------------------------------------------- */
 
 /* Thanks to TTfp */
 add_filter('gettext', 'wpupllutilities_gettext_filter', 1, 2);
