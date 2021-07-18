@@ -3,7 +3,7 @@
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 0.2.0
+Version: 0.2.1
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -49,15 +49,10 @@ class WPUPllUtilities {
 
     /* Fields */
     public function wpu_options_fields($options) {
-
-        /* Hide languages */
-        $poly_langs = pll_the_languages(array(
-            'raw' => 1,
-            'echo' => 0
-        ));
-        foreach ($poly_langs as $code => $lang) {
+        $poly_langs = pll_languages_list();
+        foreach ($poly_langs as $code) {
             $options['wpu_pll_utilities__hide__' . $code] = array(
-                'label' => sprintf('Hide %s', $lang['name']),
+                'label' => sprintf('Hide %s', $code),
                 'box' => 'wpu_pll_utilities',
                 'type' => 'checkbox'
             );
