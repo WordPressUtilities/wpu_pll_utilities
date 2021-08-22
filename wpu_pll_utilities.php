@@ -3,7 +3,7 @@
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 0.2.2
+Version: 0.3.0
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -187,3 +187,60 @@ function wpupllutilities_gettext_filter($original, $text) {
 
     return $translation;
 }
+
+/* ----------------------------------------------------------
+  Helper
+---------------------------------------------------------- */
+
+function wpu_pll_utilities_get_languages() {
+    $poly_langs = array();
+    if (function_exists('pll_the_languages')) {
+        $poly_langs = pll_the_languages(array(
+            'raw' => 1,
+            'echo' => 0
+        ));
+    }
+    return $poly_langs;
+}
+
+/* ----------------------------------------------------------
+  Handle non multilingual post type archives
+---------------------------------------------------------- */
+
+/*
+add_filter('wpu_pll_archives', function ($tax) {
+    $tax[] = 'my_custom_post_type';
+    return $tax;
+}, 10, 1);
+*/
+
+/* Force lang slug on links
+-------------------------- */
+
+add_filter('post_type_archive_link', function ($link, $post_type) {
+    $wpu_pll_archives = apply_filters('wpu_pll_archives', array());
+    if (in_array($post_type, $wpu_pll_archives) && function_exists('pll_current_language') && function_exists('pll_default_language') && pll_default_language('slug') != pll_current_language()) {
+        $link = str_replace(site_url(), site_url() . '/' . pll_current_language(), $link);
+    }
+    return $link;
+}, 10, 2);
+
+/* Force rewrite
+-------------------------- */
+
+add_action('init', function () {
+    $wpu_pll_archives = apply_filters('wpu_pll_archives', array());
+    $langs = wpu_pll_utilities_get_languages();
+    $default_lang = '';
+    if (function_exists('pll_default_language')) {
+        $default_lang = pll_default_language('slug');
+    }
+    foreach ($wpu_pll_archives as $slug) {
+        foreach ($langs as $i => $lang) {
+            if ($lang['slug'] == $default_lang) {
+                continue;
+            }
+            add_rewrite_rule($lang['slug'] . '/' . $slug . '[/]?$', 'index.php?lang=' . $lang['slug'] . '&post_type=' . $slug, 'top');
+        }
+    }
+});
