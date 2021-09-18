@@ -3,7 +3,7 @@
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 0.3.0
+Version: 0.4.0
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -243,4 +243,52 @@ add_action('init', function () {
             add_rewrite_rule($lang['slug'] . '/' . $slug . '[/]?$', 'index.php?lang=' . $lang['slug'] . '&post_type=' . $slug, 'top');
         }
     }
+});
+
+/* ----------------------------------------------------------
+  Helper for translation
+---------------------------------------------------------- */
+
+function wpu_pll_utilities_can_use_helper_translate() {
+    if (is_admin()) {
+        return false;
+    }
+    if (!is_user_logged_in()) {
+        return false;
+    }
+    if (!current_user_can('edit_pages')) {
+        return false;
+    }
+    $gettext_domain = apply_filters('wpu_pll_utilities_helper_translate_domain', '');
+    if (!$gettext_domain) {
+        return false;
+    }
+    return true;
+}
+
+add_action('wp', function () {
+    if (!wpu_pll_utilities_can_use_helper_translate()) {
+        return false;
+    }
+    if (!isset($_GET['live_translation'])) {
+        return false;
+    }
+    $gettext_domain = apply_filters('wpu_pll_utilities_helper_translate_domain', '');
+    add_filter('gettext_' . $gettext_domain, function ($translation, $text) {
+        $admin_url = admin_url('admin.php?page=mlang_strings&s=' . urlencode($translation));
+        $title = __('Strings translations', 'polylang');
+        $styles = array(
+            'cursor:help',
+            'z-index:9999999',
+            'position:relative',
+            'border:2px dashed rgba(0,0,0,0.5)'
+        );
+        if ($translation == $text) {
+            $styles[] = 'background-color:#FF0000';
+        } else {
+            $styles[] = 'background-color:#00FF00';
+            $title .= ' : ok';
+        }
+        return '<i title="' . esc_attr($title) . '" onclick="window.open(\'' . $admin_url . '\');return false;" style="' . implode(';', $styles) . '">' . $translation . '</i>';
+    }, 10, 2);
 });
