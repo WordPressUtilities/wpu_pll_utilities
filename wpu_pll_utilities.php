@@ -3,7 +3,7 @@
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 0.5.1
+Version: 0.5.2
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -194,6 +194,10 @@ function wpupllutilities_gettext_filter($original, $text) {
 
 function wpu_pll_utilities_get_languages() {
     $poly_langs = array();
+    $polylang_opt = get_option('polylang');
+    if (!$polylang_opt) {
+        return array();
+    }
     if (function_exists('pll_the_languages')) {
         $poly_langs = pll_the_languages(array(
             'raw' => 1,
