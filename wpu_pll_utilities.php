@@ -3,7 +3,7 @@
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 0.5.3
+Version: 0.5.4
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -87,6 +87,10 @@ class WPUPllUtilities {
         foreach ($folders_to_scan as $folder) {
             $this->file_scanner($this->get_files_in_folder($folder));
         }
+        $files_to_scan = apply_filters('wpupllutilities__files_to_scan', array());
+        if ($files_to_scan) {
+            $this->file_scanner($files_to_scan);
+        }
     }
 
     public function get_files_in_folder($folder = false) {
@@ -136,6 +140,9 @@ class WPUPllUtilities {
     private function file_scanner($files) {
         $master_strings = array();
         foreach ($files as $f_id => $file) {
+            if (!file_exists($file)) {
+                continue;
+            }
             $_file_content = file_get_contents($file);
 
             // find wp functions: __(), _e()
