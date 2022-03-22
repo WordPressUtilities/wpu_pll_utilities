@@ -3,7 +3,7 @@
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 0.6.0
+Version: 0.6.1
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -22,6 +22,7 @@ class WPUPllUtilities {
         add_filter('wpu_options_boxes', array(&$this, 'wpu_options_boxes'));
         add_filter('wpu_options_fields', array(&$this, 'wpu_options_fields'));
         add_filter('wputh_translated_url', array(&$this, 'wputh_translated_url'), 50, 2);
+        add_filter('pll_rel_hreflang_attributes', array(&$this, 'pll_rel_hreflang_attributes'), 10, 1);
     }
 
     public function plugins_loaded() {
@@ -76,6 +77,21 @@ class WPUPllUtilities {
             }
         }
         return $enabled_languages;
+    }
+
+    /* ----------------------------------------------------------
+      Hreflangs
+    ---------------------------------------------------------- */
+
+    public function pll_rel_hreflang_attributes($hreflangs) {
+        $final_hreflangs = array();
+        foreach ($hreflangs as $code => $url) {
+            $is_disabled = get_option('wpu_pll_utilities__hide__' . $code);
+            if (!$is_disabled) {
+                $final_hreflangs[$code] = $url;
+            }
+        }
+        return $final_hreflangs;
     }
 
     /* ----------------------------------------------------------
