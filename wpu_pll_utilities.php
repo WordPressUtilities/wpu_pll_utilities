@@ -3,7 +3,7 @@
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 0.6.1
+Version: 0.6.2
 Author: Darklg
 Author URI: https://darklg.me/
 License: MIT License
@@ -284,5 +284,5 @@ include dirname(__FILE__) . '/inc/live-translation.php';
 
 add_action('wp_enqueue_scripts', function () {
     $plugins_url = str_replace(ABSPATH, site_url() . '/', plugin_dir_path(__FILE__));
-    wp_enqueue_script('wpu_pll_utilities-script-front', $plugins_url . 'assets/script.js', array(), '0.1.0', true);
+    wp_enqueue_script('wpu_pll_utilities-script-front', $plugins_url . 'assets/script.js', array(), '0.6.2', true);
 });

@@ -13,15 +13,14 @@ function wpu_pll_set_cookie(cname, cvalue, exdays) {
   Better language select
 ---------------------------------------------------------- */
 
-window.addEventListener("DOMContentLoaded", function() {
-    [].forEach.call(document.querySelectorAll('.wpu-pll-lang'), function(el, i) {
-        el.addEventListener('change', function(e) {
-            var $item = e.target.options[e.target.selectedIndex];
-            wpu_pll_set_cookie('pll_language', $item.getAttribute('data-lang'), 1);
-            window.location.href = this.value;
-        }, false);
-    });
-});
+document.addEventListener('change', function(e) {
+    if (!e.target.classList.contains('wpu-pll-lang')) {
+        return;
+    }
+    var $item = e.target.options[e.target.selectedIndex];
+    wpu_pll_set_cookie('pll_language', $item.getAttribute('data-lang'), 1);
+    window.location.href = e.target.value;
+}, false);
 
 /* ----------------------------------------------------------
   Auto-redirect based on lang
