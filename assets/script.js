@@ -27,11 +27,14 @@ document.addEventListener('change', function(e) {
 ---------------------------------------------------------- */
 
 (function() {
+    if (wpu_pll_utilities_obj.autoredirect != '1') {
+        return;
+    }
 
     if (!localStorage) {
         return;
     }
-    var localstoragekey = 'wpu_pll_auto_redirect';
+    var localstoragekey = wpu_pll_utilities_obj.autoredirect_localstoragekey;
 
     /* Already redirected */
     var _auto_lang = localStorage.getItem(localstoragekey);

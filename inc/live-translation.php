@@ -49,7 +49,7 @@ add_action('admin_bar_menu', function ($wp_admin_bar) {
 /* Display translation
 -------------------------- */
 
-add_action('wp', function () {
+add_action('plugins_loaded', function () {
     if (!wpu_pll_utilities_can_use_helper_translate()) {
         return false;
     }
