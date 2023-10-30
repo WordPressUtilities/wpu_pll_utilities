@@ -1,5 +1,8 @@
 # WPU Pll Utilities
 
+[![PHP workflow](https://github.com/WordPressUtilities/wpu_pll_utilities/actions/workflows/php.yml/badge.svg 'PHP workflow')](https://github.com/WordPressUtilities/wpu_pll_utilities/actions)
+[![JS workflow](https://github.com/WordPressUtilities/wpu_pll_utilities/actions/workflows/js.yml/badge.svg 'JS workflow')](https://github.com/WordPressUtilities/wpu_pll_utilities/actions)
+
 Utilities for Polylang
 
 ## Help

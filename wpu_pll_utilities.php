@@ -2,12 +2,16 @@
 /*
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
+Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 0.6.3
+Version: 1.0.0
 Author: Darklg
 Author URI: https://darklg.me/
+Text Domain: wpu_pll_utilities
+Requires at least: 6.2
+Requires PHP: 8.0
 License: MIT License
-License URI: http://opensource.org/licenses/MIT
+License URI: https://opensource.org/licenses/MIT
 */
 
 class WPUPllUtilities {
@@ -114,16 +118,21 @@ class WPUPllUtilities {
             return array();
         }
 
-        $folder_key = basename($folder);
         $_files = $this->glob_recursive($folder, '*.php');
         $files = array();
         foreach ($_files as $file) {
-            $_f = str_replace($folder, '', $file);
-            $_f = str_replace('/', '--', $_f);
-            $key = $folder_key . '--' . str_replace('.php', '', $_f);
+            $key = $this->get_file_key($file);
             $files[$key] = $file;
         }
         return $files;
+    }
+
+    function get_file_key($file) {
+        $folder = dirname($file);
+        $folder_key = basename($folder);
+        $_f = str_replace($folder, '', $file);
+        $_f = str_replace('/', '--', $_f);
+        return $folder_key . '--' . str_replace('.php', '', $_f);
     }
 
     /* Thanks to https://gist.github.com/UziTech/3b65b2543cee57cd6d2ecfcccf846f20 */
@@ -159,10 +168,13 @@ class WPUPllUtilities {
             if (!file_exists($file)) {
                 continue;
             }
+            if (is_numeric($f_id)) {
+                $f_id = $this->get_file_key($file);
+            }
             $_file_content = file_get_contents($file);
 
             // find wp functions: __(), _e()
-            preg_match_all("/[\s=\(\.]+_[_e][\s]*\([\s]*[\'\"](.*?)[\'\"][\s]*,[\s]*[\'\"](.*?)[\'\"][\s]*\)/s", $_file_content, $matches);
+            preg_match_all("/_[_e]\([\s]*['\"]([^'\"]*?)['\"][\s]*,?/s", $_file_content, $matches);
             if (!empty($matches[1])) {
                 $master_strings[$f_id] = $matches[1];
             }
@@ -276,7 +288,7 @@ add_action('init', function () {
   Live translation
 ---------------------------------------------------------- */
 
-include dirname(__FILE__) . '/inc/live-translation.php';
+require_once dirname(__FILE__) . '/inc/live-translation.php';
 
 /* ----------------------------------------------------------
   Helper for lang selects
