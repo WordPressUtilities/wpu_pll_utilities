@@ -4,7 +4,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.0.0
+Version: 1.1.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -13,6 +13,8 @@ Requires PHP: 8.0
 License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
+
+define('WPUPLLUTILITIES_VERSION', '1.1.0');
 
 class WPUPllUtilities {
     private $excluded_folders = array(
@@ -27,6 +29,8 @@ class WPUPllUtilities {
         add_filter('wpu_options_fields', array(&$this, 'wpu_options_fields'));
         add_filter('wputh_translated_url', array(&$this, 'wputh_translated_url'), 50, 2);
         add_filter('pll_rel_hreflang_attributes', array(&$this, 'pll_rel_hreflang_attributes'), 10, 1);
+        add_action('admin_enqueue_scripts', array(&$this, 'admin_enqueue_scripts'));
+        add_action('wp_ajax_wpuplltranslatestring', array(&$this, 'wpuplltranslatestring'));
     }
 
     public function plugins_loaded() {
@@ -38,6 +42,58 @@ class WPUPllUtilities {
         }
         $this->excluded_folders = apply_filters('wpupllutilities__excluded_folders', $this->excluded_folders);
         $this->scan_folders();
+    }
+
+    /* ----------------------------------------------------------
+      Admin assets
+    ---------------------------------------------------------- */
+
+    public function admin_enqueue_scripts() {
+        if (!isset($_GET['page']) || $_GET['page'] != 'mlang_strings') {
+            return;
+        }
+        $plugins_url = str_replace(ABSPATH, site_url() . '/', plugin_dir_path(__FILE__));
+        wp_enqueue_script('wpu_pll_utilities-script-admin', $plugins_url . 'assets/admin-script.js', array(), WPUPLLUTILITIES_VERSION, true);
+        wp_localize_script('wpu_pll_utilities-script-admin', 'wpu_pll_utilities_admin_obj', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'str_translate' => __('Translate', 'wpu_pll_utilities'),
+            'has_deepl' => defined('WPUPLLUTILITIES_DEEPL_API_KEY')
+        ));
+    }
+
+    /* ----------------------------------------------------------
+      Ajax translation
+    ---------------------------------------------------------- */
+
+    function wpuplltranslatestring() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error();
+        }
+        if (!isset($_POST['string']) || !isset($_POST['lang'])) {
+            wp_send_json_error();
+        }
+        $string = sanitize_text_field($_POST['string']);
+        $lang = sanitize_text_field($_POST['lang']);
+
+        if (!defined('WPUPLLUTILITIES_DEEPL_API_KEY')) {
+            wp_send_json_error();
+        }
+
+        // Send a POST request to Deepl API
+        $response = wp_remote_post('https://api-free.deepl.com/v2/translate', array(
+            'body' => array(
+                'auth_key' => WPUPLLUTILITIES_DEEPL_API_KEY,
+                'text' => $string,
+                'target_lang' => $lang
+            )
+        ));
+
+        // Check if the request was successful
+        if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+            wp_send_json_success(json_decode(wp_remote_retrieve_body($response), 1));
+        } else {
+            wp_send_json_error();
+        }
     }
 
     /* ----------------------------------------------------------
@@ -296,7 +352,7 @@ require_once dirname(__FILE__) . '/inc/live-translation.php';
 
 add_action('wp_enqueue_scripts', function () {
     $plugins_url = str_replace(ABSPATH, site_url() . '/', plugin_dir_path(__FILE__));
-    wp_enqueue_script('wpu_pll_utilities-script-front', $plugins_url . 'assets/script.js', array(), '0.6.3', true);
+    wp_enqueue_script('wpu_pll_utilities-script-front', $plugins_url . 'assets/script.js', array(), WPUPLLUTILITIES_VERSION, true);
     wp_localize_script('wpu_pll_utilities-script-front', 'wpu_pll_utilities_obj', apply_filters('wpu_pll_utilities_settings_front', array(
         'autoredirect_localstoragekey' => 'wpu_pll_auto_redirect',
         'autoredirect' => '1'
