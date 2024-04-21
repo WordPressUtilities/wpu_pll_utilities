@@ -4,7 +4,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.1.0
+Version: 1.1.1
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -14,9 +14,11 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.1.0');
+define('WPUPLLUTILITIES_VERSION', '1.1.1');
 
 class WPUPllUtilities {
+    private $api_endpoint = 'https: //api-free.deepl.com';
+    private $user_level = 'manage_options';
     private $excluded_folders = array(
         'node_modules',
         'gulp',
@@ -34,6 +36,7 @@ class WPUPllUtilities {
     }
 
     public function plugins_loaded() {
+        $this->user_level = apply_filters('wpupllutilities__user_level', $this->user_level);
         if (!is_admin()) {
             return;
         }
@@ -53,9 +56,11 @@ class WPUPllUtilities {
             return;
         }
         $plugins_url = str_replace(ABSPATH, site_url() . '/', plugin_dir_path(__FILE__));
+        wp_enqueue_style('wpu_pll_utilities-style-admin', $plugins_url . 'assets/admin-style.css', array(), WPUPLLUTILITIES_VERSION);
         wp_enqueue_script('wpu_pll_utilities-script-admin', $plugins_url . 'assets/admin-script.js', array(), WPUPLLUTILITIES_VERSION, true);
         wp_localize_script('wpu_pll_utilities-script-admin', 'wpu_pll_utilities_admin_obj', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
+            'user_level_ok' => current_user_can($this->user_level),
             'str_translate' => __('Translate', 'wpu_pll_utilities'),
             'has_deepl' => defined('WPUPLLUTILITIES_DEEPL_API_KEY')
         ));
@@ -66,7 +71,7 @@ class WPUPllUtilities {
     ---------------------------------------------------------- */
 
     function wpuplltranslatestring() {
-        if (!current_user_can('manage_options')) {
+        if (!current_user_can($this->user_level)) {
             wp_send_json_error();
         }
         if (!isset($_POST['string']) || !isset($_POST['lang'])) {
@@ -80,7 +85,8 @@ class WPUPllUtilities {
         }
 
         // Send a POST request to Deepl API
-        $response = wp_remote_post('https://api-free.deepl.com/v2/translate', array(
+        $this->api_endpoint = apply_filters('wpupllutilities__deepl_api_endpoint', $this->api_endpoint);
+        $response = wp_remote_post($this->api_endpoint . '/v2/translate', array(
             'body' => array(
                 'auth_key' => WPUPLLUTILITIES_DEEPL_API_KEY,
                 'text' => $string,
@@ -246,7 +252,7 @@ class WPUPllUtilities {
 
     /* Allow editor to access string translations */
     public function admin_menu() {
-        if (!current_user_can('manage_options') && function_exists('PLL')) {
+        if (!current_user_can($this->user_level) && function_exists('PLL')) {
             add_menu_page(__('Strings translations', 'polylang'), __('Languages', 'polylang'), 'edit_users', 'mlang_strings', array(PLL(), 'languages_page'), 'dashicons-translation');
         }
     }

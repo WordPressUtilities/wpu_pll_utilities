@@ -5,6 +5,10 @@ jQuery(document).ready(function($) {
         return;
     }
 
+    if (wpu_pll_utilities_admin_obj.user_level_ok != '1') {
+        return;
+    }
+
     jQuery('.column-translations .translation').each(function(i, el) {
         var $el = jQuery(el),
             $inp = $el.find('[name*=translation]');
@@ -18,8 +22,15 @@ jQuery(document).ready(function($) {
             return;
         }
 
+        var _icon_class='dashicons-translation';
+        var _icon_class_loading = 'dashicons-cloud-upload';
+
         /* Create button */
-        var $btn = jQuery('<button>').text(wpu_pll_utilities_admin_obj.str_translate).attr('data-id', $el.data('id'));
+        var $btn = jQuery('<button>')
+            .addClass('wpu-pll-translate-btn')
+            .html('<span class="dashicons dashicons-translation"></span>')
+            .attr('title', wpu_pll_utilities_admin_obj.str_translate)
+            .attr('data-id', $el.data('id'));
         $btn.appendTo($el);
 
         /* Find translation */
@@ -27,13 +38,20 @@ jQuery(document).ready(function($) {
         $string.find('a,button').remove();
 
         /* On click : call ajax action */
+        var $icon = $btn.find('.dashicons');
         $btn.on('click', function(e) {
+            $btn.addClass('is-loading');
+            $inp.addClass('is-loading');
+            $icon.removeClass(_icon_class).addClass(_icon_class_loading);
             e.preventDefault();
             jQuery.post(ajaxurl, {
                 action: 'wpuplltranslatestring',
                 string: $string.text(),
                 lang: lang
             }, function(response) {
+                $icon.removeClass(_icon_class_loading).addClass(_icon_class);
+                $btn.removeClass('is-loading');
+                $inp.removeClass('is-loading');
                 if (response.data.translations[0].text) {
                     $inp.val(response.data.translations[0].text);
                 }
