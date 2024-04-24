@@ -1,4 +1,5 @@
 <?php
+defined('ABSPATH') || die;
 
 /* ----------------------------------------------------------
   Helper for live translation

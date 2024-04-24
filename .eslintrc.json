@@ -12,6 +12,7 @@
     },
     "globals": {
         "wp": true,
+        "wpu_pll_utilities_admin_obj": true,
         "wpu_pll_utilities_obj": true,
         "jQuery": true
     }

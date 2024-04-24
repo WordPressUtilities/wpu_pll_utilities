@@ -1,23 +1,25 @@
 <?php
+defined('ABSPATH') || die;
 /*
 Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.1.1
+Version: 1.2.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
 Requires at least: 6.2
 Requires PHP: 8.0
+Network: Optional
 License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.1.1');
+define('WPUPLLUTILITIES_VERSION', '1.2.0');
 
 class WPUPllUtilities {
-    private $api_endpoint = 'https: //api-free.deepl.com';
+    private $api_endpoint_deepl = 'https: //api-free.deepl.com';
     private $user_level = 'manage_options';
     private $excluded_folders = array(
         'node_modules',
@@ -80,19 +82,21 @@ class WPUPllUtilities {
         $string = sanitize_text_field($_POST['string']);
         $lang = sanitize_text_field($_POST['lang']);
 
-        if (!defined('WPUPLLUTILITIES_DEEPL_API_KEY')) {
-            wp_send_json_error();
-        }
+        if (defined('WPUPLLUTILITIES_DEEPL_API_KEY')) {
 
-        // Send a POST request to Deepl API
-        $this->api_endpoint = apply_filters('wpupllutilities__deepl_api_endpoint', $this->api_endpoint);
-        $response = wp_remote_post($this->api_endpoint . '/v2/translate', array(
-            'body' => array(
-                'auth_key' => WPUPLLUTILITIES_DEEPL_API_KEY,
-                'text' => $string,
-                'target_lang' => $lang
-            )
-        ));
+            // Send a POST request to Deepl API
+            $this->api_endpoint_deepl = apply_filters('wpupllutilities__deepl_api_endpoint_deepl', $this->api_endpoint_deepl);
+            $response = wp_remote_post($this->api_endpoint_deepl . '/v2/translate', array(
+                'body' => array(
+                    'auth_key' => WPUPLLUTILITIES_DEEPL_API_KEY,
+                    'text' => $string,
+                    'target_lang' => $lang
+                )
+            ));
+        } else {
+            $url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=%s&tl=%s&dt=t&q=%s';
+            $response = wp_remote_get(sprintf($url, 'en', $lang, urlencode(remove_accents($string))));
+        }
 
         // Check if the request was successful
         if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
@@ -257,6 +261,21 @@ class WPUPllUtilities {
         }
     }
 
+    /* ----------------------------------------------------------
+      Helpers
+    ---------------------------------------------------------- */
+
+    /* Remove accents
+    -------------------------- */
+
+    function remove_accents($str, $charset = 'utf-8') {
+        $str = htmlentities($str, ENT_NOQUOTES, $charset);
+        $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
+        $str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str);
+        $str = preg_replace('#&[^;]+;#', '', $str);
+        return $str;
+    }
+
 }
 
 $WPUPllUtilities = new WPUPllUtilities();
@@ -350,7 +369,7 @@ add_action('init', function () {
   Live translation
 ---------------------------------------------------------- */
 
-require_once dirname(__FILE__) . '/inc/live-translation.php';
+require_once __DIR__ . '/inc/live-translation.php';
 
 /* ----------------------------------------------------------
   Helper for lang selects

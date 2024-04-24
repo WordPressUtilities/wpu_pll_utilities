@@ -1,10 +1,6 @@
 jQuery(document).ready(function($) {
     'use strict';
 
-    if (wpu_pll_utilities_admin_obj.has_deepl != '1') {
-        return;
-    }
-
     if (wpu_pll_utilities_admin_obj.user_level_ok != '1') {
         return;
     }
@@ -44,7 +40,7 @@ jQuery(document).ready(function($) {
             $inp.addClass('is-loading');
             $icon.removeClass(_icon_class).addClass(_icon_class_loading);
             e.preventDefault();
-            jQuery.post(ajaxurl, {
+            jQuery.post(wpu_pll_utilities_admin_obj.ajaxurl, {
                 action: 'wpuplltranslatestring',
                 string: $string.text(),
                 lang: lang
@@ -52,8 +48,11 @@ jQuery(document).ready(function($) {
                 $icon.removeClass(_icon_class_loading).addClass(_icon_class);
                 $btn.removeClass('is-loading');
                 $inp.removeClass('is-loading');
-                if (response.data.translations[0].text) {
+                if (response.data.translations && response.data.translations[0].text) {
                     $inp.val(response.data.translations[0].text);
+                }
+                else if (response.data[0] && response.data[0][0] && response.data[0][0][0]) {
+                    $inp.val(response.data[0][0][0]);
                 }
             });
         });
