@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.2.0
+Version: 1.3.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.2.0');
+define('WPUPLLUTILITIES_VERSION', '1.3.0');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https: //api-free.deepl.com';
@@ -35,6 +35,7 @@ class WPUPllUtilities {
         add_filter('pll_rel_hreflang_attributes', array(&$this, 'pll_rel_hreflang_attributes'), 10, 1);
         add_action('admin_enqueue_scripts', array(&$this, 'admin_enqueue_scripts'));
         add_action('wp_ajax_wpuplltranslatestring', array(&$this, 'wpuplltranslatestring'));
+        add_filter('wp_robots', array(&$this, 'wp_robots'), 90, 1);
     }
 
     public function plugins_loaded() {
@@ -72,7 +73,7 @@ class WPUPllUtilities {
       Ajax translation
     ---------------------------------------------------------- */
 
-    function wpuplltranslatestring() {
+    public function wpuplltranslatestring() {
         if (!current_user_can($this->user_level)) {
             wp_send_json_error();
         }
@@ -141,8 +142,7 @@ class WPUPllUtilities {
     public function wputh_translated_url($display_languages, $current_url) {
         $enabled_languages = array();
         foreach ($display_languages as $code => $lang) {
-            $is_disabled = get_option('wpu_pll_utilities__hide__' . $code);
-            if (!$is_disabled) {
+            if (!$this->is_lang_disabled($code)) {
                 $enabled_languages[$code] = $lang;
             }
         }
@@ -156,8 +156,7 @@ class WPUPllUtilities {
     public function pll_rel_hreflang_attributes($hreflangs) {
         $final_hreflangs = array();
         foreach ($hreflangs as $code => $url) {
-            $is_disabled = get_option('wpu_pll_utilities__hide__' . $code);
-            if (!$is_disabled) {
+            if (!$this->is_lang_disabled($code)) {
                 $final_hreflangs[$code] = $url;
             }
         }
@@ -193,7 +192,7 @@ class WPUPllUtilities {
         return $files;
     }
 
-    function get_file_key($file) {
+    public function get_file_key($file) {
         $folder = dirname($file);
         $folder_key = basename($folder);
         $_f = str_replace($folder, '', $file);
@@ -262,13 +261,32 @@ class WPUPllUtilities {
     }
 
     /* ----------------------------------------------------------
+      Robots
+    ---------------------------------------------------------- */
+
+    public function wp_robots($opts = array()) {
+        if (function_exists('pll_current_language') && $this->is_lang_disabled(pll_current_language())) {
+            $opts['noindex'] = true;
+        }
+
+        return $opts;
+    }
+
+    /* ----------------------------------------------------------
       Helpers
     ---------------------------------------------------------- */
+
+    /* Is a lang disabled
+    -------------------------- */
+
+    public function is_lang_disabled($lang) {
+        return get_option('wpu_pll_utilities__hide__' . $lang);
+    }
 
     /* Remove accents
     -------------------------- */
 
-    function remove_accents($str, $charset = 'utf-8') {
+    public function remove_accents($str, $charset = 'utf-8') {
         $str = htmlentities($str, ENT_NOQUOTES, $charset);
         $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
         $str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str);
