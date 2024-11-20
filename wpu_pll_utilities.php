@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.3.2
+Version: 1.4.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.3.2');
+define('WPUPLLUTILITIES_VERSION', '1.4.0');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https://api-free.deepl.com';
@@ -83,13 +83,21 @@ class WPUPllUtilities {
         $string = sanitize_text_field($_POST['string']);
         $lang = sanitize_text_field($_POST['lang']);
 
-        if (defined('WPUPLLUTILITIES_DEEPL_API_KEY')) {
+        $deepl_api_key = '';
+        $polylang_option = get_option('polylang');
+        if (is_array($polylang_option) && isset($polylang_option['machine_translation_enabled'], $polylang_option['machine_translation_services'], $polylang_option['machine_translation_services']['deepl'], $polylang_option['machine_translation_services']['deepl']['api_key']) && $polylang_option['machine_translation_enabled']) {
+            $deepl_api_key = $polylang_option['machine_translation_services']['deepl']['api_key'];
+        }
+        if (defined('WPUPLLUTILITIES_DEEPL_API_KEY') && WPUPLLUTILITIES_DEEPL_API_KEY) {
+            $deepl_api_key = WPUPLLUTILITIES_DEEPL_API_KEY;
+        }
 
+        if ($deepl_api_key) {
             // Send a POST request to Deepl API
             $this->api_endpoint_deepl = apply_filters('wpupllutilities__deepl_api_endpoint_deepl', $this->api_endpoint_deepl);
             $response = wp_remote_post($this->api_endpoint_deepl . '/v2/translate', array(
                 'body' => array(
-                    'auth_key' => WPUPLLUTILITIES_DEEPL_API_KEY,
+                    'auth_key' => $deepl_api_key,
                     'text' => $string,
                     'target_lang' => $lang
                 )
