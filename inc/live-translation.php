@@ -34,9 +34,8 @@ add_action('admin_bar_menu', function ($wp_admin_bar) {
     $target_url = home_url($wp->request);
     if (!isset($_GET['live_translation'])) {
         $target_url = add_query_arg('live_translation', '1', $target_url);
-    }
-    else {
-        $target_url = remove_query_arg('live_translation',  $target_url);
+    } else {
+        $target_url = remove_query_arg('live_translation', $target_url);
     }
 
     $args = array(
@@ -59,7 +58,9 @@ add_action('plugins_loaded', function () {
     }
     $gettext_domain = apply_filters('wpu_pll_utilities_helper_translate_domain', '');
     add_filter('gettext_' . $gettext_domain, function ($translation, $text) {
-        $admin_url = admin_url('admin.php?page=mlang_strings&s=' . urlencode($translation));
+        /* Escape translation to avoid bugs with sprintf */
+        $encode_translate = str_replace('%', '%%', urlencode($translation));
+        $admin_url = admin_url('admin.php?page=mlang_strings&s=' . $encode_translate);
         $title = __('Strings translations', 'polylang');
         $styles = array(
             'cursor:help',
