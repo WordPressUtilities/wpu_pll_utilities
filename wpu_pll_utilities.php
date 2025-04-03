@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.4.1
+Version: 1.4.2
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.4.1');
+define('WPUPLLUTILITIES_VERSION', '1.4.2');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https://api-free.deepl.com';
@@ -417,3 +417,18 @@ add_action('wp_enqueue_scripts', function () {
         'autoredirect' => '1'
     )));
 });
+
+/* ----------------------------------------------------------
+  Force x-default hreflang
+---------------------------------------------------------- */
+
+add_filter('pll_rel_hreflang_attributes', function ($hreflangs) {
+    if (isset($hreflangs['x-default'])) {
+        return $hreflangs;
+    }
+    $default_lang = pll_default_language();
+    if (isset($hreflangs[$default_lang])) {
+        $hreflangs['x-default'] = $hreflangs[$default_lang];
+    }
+    return $hreflangs;
+}, 99, 1);
