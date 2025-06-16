@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.4.2
+Version: 1.5.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.4.2');
+define('WPUPLLUTILITIES_VERSION', '1.5.0');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https://api-free.deepl.com';
@@ -26,6 +26,7 @@ class WPUPllUtilities {
         'gulp',
         'assets'
     );
+    private $translated_strings = array();
     public function __construct() {
         add_action('plugins_loaded', array(&$this, 'plugins_loaded'));
         add_action('admin_menu', array(&$this, 'admin_menu'));
@@ -48,6 +49,7 @@ class WPUPllUtilities {
         }
         $this->excluded_folders = apply_filters('wpupllutilities__excluded_folders', $this->excluded_folders);
         $this->scan_folders();
+        add_action('admin_footer', array(&$this, 'admin_footer_load_translation_js'));
     }
 
     /* ----------------------------------------------------------
@@ -264,6 +266,7 @@ class WPUPllUtilities {
         /* Register in PLL */
         foreach ($master_strings as $context => $strings) {
             foreach ($strings as $string) {
+                $this->translated_strings[] = $string;
                 pll_register_string($string, $string, $context, strlen($string) > 30);
             }
         }
@@ -274,6 +277,35 @@ class WPUPllUtilities {
         if (!current_user_can($this->user_level) && function_exists('PLL')) {
             add_menu_page(__('Strings translations', 'polylang'), __('Languages', 'polylang'), 'edit_users', 'mlang_strings', array(PLL(), 'languages_page'), 'dashicons-translation');
         }
+    }
+
+    function admin_footer_load_translation_js() {
+        if (!function_exists('pll_the_languages') || !function_exists('pll_translate_string')) {
+            return;
+        }
+
+        $source_language = apply_filters('wpupllutilities__load_translation_source_language', 'en');
+        $translation_key = apply_filters('wpupllutilities__load_translation_key', get_stylesheet());
+
+        /* Get all languages */
+        $languages = pll_the_languages(array(
+            'raw' => 1
+        ));
+
+        /* Load all translations in each language and add it to a JS var */
+        $translations_by_lang = array();
+        foreach ($languages as $lang => $lang_data) {
+            $translations_by_lang[$lang] = array();
+            switch_to_locale(str_replace('-', '_', $lang_data['locale']));
+            foreach ($this->translated_strings as $string) {
+                $translations_by_lang[$lang][$string] = ($lang == $source_language) ? $string : __($string, $translation_key);
+            }
+            restore_previous_locale();
+        }
+
+        /* Add languages to JS */
+        echo '<script>var wpu_pll_utilities_translations_by_lang = ' . json_encode($translations_by_lang) . ';</script>';
+
     }
 
     /* ----------------------------------------------------------

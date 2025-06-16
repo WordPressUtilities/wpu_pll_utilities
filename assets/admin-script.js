@@ -33,6 +33,19 @@ jQuery(document).ready(function($) {
         var $string = $inp.closest('tr').find('.column-string').clone();
         $string.find('a,button').remove();
 
+        /* If input value equals original string and a translation exists, clear value and set placeholder */
+        var originalString = $string.text().trim();
+        var translationsByLang = window.wpu_pll_utilities_translations_by_lang || {};
+        var _inputVal = $inp.val().trim();
+        if (
+            (_inputVal === originalString || _inputVal === '') &&
+            translationsByLang[lang] &&
+            translationsByLang[lang][originalString]
+        ) {
+            $inp.val('');
+            $inp.attr('placeholder', translationsByLang[lang][originalString]);
+        }
+
         /* On click : call ajax action */
         var $icon = $btn.find('.dashicons');
         $btn.on('click', function(e) {
