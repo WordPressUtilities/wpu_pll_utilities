@@ -1,4 +1,4 @@
-jQuery(document).ready(function($) {
+jQuery(document).ready(function() {
     'use strict';
 
     if (wpu_pll_utilities_admin_obj.user_level_ok != '1') {
@@ -18,7 +18,7 @@ jQuery(document).ready(function($) {
             return;
         }
 
-        var _icon_class='dashicons-translation';
+        var _icon_class = 'dashicons-translation';
         var _icon_class_loading = 'dashicons-cloud-upload';
 
         /* Create button */
@@ -37,12 +37,14 @@ jQuery(document).ready(function($) {
         var originalString = $string.text().trim();
         var translationsByLang = window.wpu_pll_utilities_translations_by_lang || {};
         var _inputVal = $inp.val().trim();
+        var _hasTranslation = translationsByLang[lang] && translationsByLang[lang][originalString];
         if (
             (_inputVal === originalString || _inputVal === '') &&
-            translationsByLang[lang] &&
-            translationsByLang[lang][originalString]
+            _hasTranslation
         ) {
             $inp.val('');
+        }
+        if (_hasTranslation) {
             $inp.attr('placeholder', translationsByLang[lang][originalString]);
         }
 
@@ -63,8 +65,7 @@ jQuery(document).ready(function($) {
                 $inp.removeClass('is-loading');
                 if (response.data.translations && response.data.translations[0].text) {
                     $inp.val(response.data.translations[0].text);
-                }
-                else if (response.data[0] && response.data[0][0] && response.data[0][0][0]) {
+                } else if (response.data[0] && response.data[0][0] && response.data[0][0][0]) {
                     $inp.val(response.data[0][0][0]);
                 }
             });
