@@ -7,6 +7,8 @@ jQuery(document).ready(function() {
 
     jQuery('.column-translations .translation').each(function(i, el) {
         var $el = jQuery(el),
+            $tr = $el.closest('tr'),
+            _string_name = $tr.find('.column-name').text().trim(),
             $inp = $el.find('[name*=translation]');
 
         /* Check if the input can be translated */
@@ -63,12 +65,31 @@ jQuery(document).ready(function() {
                 $icon.removeClass(_icon_class_loading).addClass(_icon_class);
                 $btn.removeClass('is-loading');
                 $inp.removeClass('is-loading');
+                var _val = '';
+
                 if (response.data.translations && response.data.translations[0].text) {
-                    $inp.val(response.data.translations[0].text);
+                    _val =response.data.translations[0].text;
                 } else if (response.data[0] && response.data[0][0] && response.data[0][0][0]) {
-                    $inp.val(response.data[0][0][0]);
+                    _val =response.data[0][0][0];
+                }
+
+                if(_val) {
+                    if (_string_name.indexOf('slug') !== -1){
+                        _val = wpu_pll_sanitize_string(_val);
+                    }
+                    $inp.val(_val);
                 }
             });
         });
     });
 });
+
+function wpu_pll_sanitize_string(str) {
+    'use strict';
+    if (typeof str !== 'string') {
+        return '';
+    }
+    str = str.toLowerCase().trim();
+    str = str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return str.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
