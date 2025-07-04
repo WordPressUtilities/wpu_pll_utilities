@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.5.2
+Version: 1.5.3
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.5.2');
+define('WPUPLLUTILITIES_VERSION', '1.5.3');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https://api-free.deepl.com';
@@ -294,11 +294,20 @@ class WPUPllUtilities {
 
         /* Load all translations in each language and add it to a JS var */
         $translations_by_lang = array();
+        $available_languages = get_available_languages();
         foreach ($languages as $lang => $lang_data) {
             $translations_by_lang[$lang] = array();
-            switch_to_locale(str_replace('-', '_', $lang_data['locale']));
-            foreach ($this->translated_strings as $string) {
-                $translations_by_lang[$lang][$string] = ($lang == $source_language) ? $string : __($string, $translation_key);
+            $locale_name = str_replace('-', '_', $lang_data['locale']);
+            $switch_to_locale = switch_to_locale($locale_name);
+            if ($switch_to_locale) {
+                foreach ($this->translated_strings as $string) {
+                    $translations_by_lang[$lang][$string] = ($lang == $source_language) ? $string : __($string, $translation_key);
+                }
+            } else {
+                error_log(sprintf(__('WPU PLL Utilities : Could not switch to locale %s.', 'wpu_pll_utilities'), $locale_name));
+                if (!in_array($locale_name, $available_languages)) {
+                    error_log(sprintf(__('WPU PLL Utilities : Locale %s is not available in WordPress Core.', 'wpu_pll_utilities'), $locale_name));
+                }
             }
             restore_previous_locale();
         }
