@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.5.5
+Version: 1.6.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.5.5');
+define('WPUPLLUTILITIES_VERSION', '1.6.0');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https://api-free.deepl.com';
@@ -299,7 +299,7 @@ class WPUPllUtilities {
             $translations_by_lang[$lang] = array();
             $locale_name = str_replace('-', '_', $lang_data['locale']);
             $switch_to_locale = switch_to_locale($locale_name);
-            if ($switch_to_locale) {
+            if ($switch_to_locale || $locale_name == get_locale()) {
                 foreach ($this->translated_strings as $string) {
                     $translations_by_lang[$lang][$string] = ($lang == $source_language) ? $string : __($string, $translation_key);
                 }
