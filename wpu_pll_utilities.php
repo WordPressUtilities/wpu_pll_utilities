@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.6.0
+Version: 1.6.1
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.6.0');
+define('WPUPLLUTILITIES_VERSION', '1.6.1');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https://api-free.deepl.com';
@@ -230,7 +230,7 @@ class WPUPllUtilities {
             $files = array();
         }
 
-        foreach (glob($base . '*', GLOB_ONLYDIR | GLOB_NOSORT | GLOB_MARK) as $dir) {
+        foreach (glob($base . '*', GLOB_ONLYDIR | GLOB_MARK) as $dir) {
             $dirname = basename($dir);
             if (in_array($dirname, $this->excluded_folders)) {
                 continue;
@@ -279,7 +279,7 @@ class WPUPllUtilities {
         }
     }
 
-    function admin_footer_load_translation_js() {
+    public function admin_footer_load_translation_js() {
         if (!function_exists('pll_the_languages') || !function_exists('pll_translate_string')) {
             return;
         }
