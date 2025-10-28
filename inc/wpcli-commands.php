@@ -34,6 +34,7 @@ WP_CLI::add_command('wpupll add_lang', function ($args) {
     $args = array(
         'term_group' => 0,
         'slug' => $slug,
+        'flag' => $slug,
         'locale' => $locale,
         'name' => $name
     );
@@ -45,4 +46,27 @@ WP_CLI::add_command('wpupll add_lang', function ($args) {
     } else {
         WP_CLI::error('Failed to add language.');
     }
-});
+}, array(
+    'shortdesc' => 'Add a new language to Polylang.',
+    'synopsis' => array(
+        array(
+            'type' => 'positional',
+            'name' => 'locale',
+            'description' => 'The locale code of the language (e.g., en_US).',
+            'required' => true,
+        ),
+        array(
+            'type' => 'positional',
+            'name' => 'slug',
+            'description' => 'The slug for the language (e.g., en).',
+            'required' => true,
+        ),
+        array(
+            'type' => 'positional',
+            'name' => 'name',
+            'description' => 'The name of the language (e.g., English).',
+            'required' => true,
+        ),
+    ),
+
+));
