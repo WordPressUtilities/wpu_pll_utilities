@@ -22,6 +22,34 @@ function wpu_pll_utilities_can_use_helper_translate() {
     return true;
 }
 
+/* Encoding helper
+-------------------------- */
+
+/**
+ * Encode only query delimiters (?, &, =) inside a string.
+ *
+ * Useful when a full urlencode would break readability or when
+ * you only need to escape query separators inside a value.
+ *
+ * @param string $value
+ * @param array  $map optional override for replacements
+ *
+ * @return string
+ */
+function wpu_pll_utilities_encode_query_delimiters($value, array $map = []) {
+    if ($value === null || $value === '') {
+        return '';
+    }
+
+    $replacements = $map ?: [
+        '?' => '%3F',
+        '&' => '%26',
+        '=' => '%3D'
+    ];
+
+    return strtr((string) $value, $replacements);
+}
+
 /* Menu bar item
 -------------------------- */
 
@@ -59,7 +87,10 @@ add_action('plugins_loaded', function () {
     $gettext_domain = apply_filters('wpu_pll_utilities_helper_translate_domain', '');
     add_filter('gettext_' . $gettext_domain, function ($translation, $text) {
         /* Escape translation to avoid bugs with sprintf */
-        $encode_translate = str_replace('%', '%%', urlencode($translation));
+        $encode_translate = wpu_pll_utilities_encode_query_delimiters($text);
+        if (strpos($text, '%') !== false) {
+            $encode_translate = str_replace('%', '%%', $encode_translate);
+        }
         $admin_url = admin_url('admin.php?page=mlang_strings&s=' . $encode_translate);
         $title = __('Strings translations', 'polylang');
         $styles = array(
