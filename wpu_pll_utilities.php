@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.7.4
+Version: 1.8.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.7.4');
+define('WPUPLLUTILITIES_VERSION', '1.8.0');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https://api-free.deepl.com';
@@ -276,7 +276,9 @@ class WPUPllUtilities {
         foreach ($master_strings as $context => $strings) {
             foreach ($strings as $string) {
                 $this->translated_strings[] = $string;
-                pll_register_string($string, $string, $context, strlen($string) > 30);
+                if (function_exists('pll_register_string')) {
+                    pll_register_string($string, $string, $context, strlen($string) > 30);
+                }
             }
         }
     }
@@ -348,18 +350,6 @@ class WPUPllUtilities {
     public function is_lang_disabled($lang) {
         return get_option('wpu_pll_utilities__hide__' . $lang);
     }
-
-    /* Remove accents
-    -------------------------- */
-
-    public function remove_accents($str, $charset = 'utf-8') {
-        $str = htmlentities($str, ENT_NOQUOTES, $charset);
-        $str = preg_replace('#&([A-za-z])(?:acute|cedil|caron|circ|grave|orn|ring|slash|th|tilde|uml);#', '\1', $str);
-        $str = preg_replace('#&([A-za-z]{2})(?:lig);#', '\1', $str);
-        $str = preg_replace('#&[^;]+;#', '', $str);
-        return $str;
-    }
-
 }
 
 $WPUPllUtilities = new WPUPllUtilities();
@@ -493,3 +483,58 @@ add_filter('pll_rel_hreflang_attributes', function ($hreflangs) {
     }
     return $hreflangs;
 }, 99, 1);
+
+/* ----------------------------------------------------------
+  Check invalid Polylang configuration on front
+---------------------------------------------------------- */
+
+add_action('template_redirect', function () {
+    if (!function_exists('pll_the_languages') || !function_exists('pll_current_language')) {
+        return;
+    }
+
+    /* Check if languages are available */
+    $pll_languages_list = get_transient('pll_languages_list');
+    if (!$pll_languages_list) {
+        return;
+    }
+
+    /* Only on front page */
+    if (!is_front_page() && !is_404()) {
+        return;
+    }
+
+    /* Check once every 12 hours */
+    $wpu_pll_check_invalid_pll = get_transient('wpu_pll_check_invalid_pll');
+    if ($wpu_pll_check_invalid_pll === 1) {
+        return;
+    }
+    set_transient('wpu_pll_check_invalid_pll', 1, 12 * HOUR_IN_SECONDS);
+
+    /* Get languages */
+    $translations = pll_the_languages(array('raw' => 1));
+    if (!is_array($translations) || count($translations) == 0) {
+        return;
+    }
+    $has_error = false;
+    foreach ($translations as $translation) {
+        if (!isset($translation['flag'], $translation['url'])) {
+            continue;
+        }
+
+        /* Check if flag URL host matches site URL host */
+        $flag_url_host = parse_url($translation['flag'], PHP_URL_HOST);
+        $site_url_host = parse_url($translation['url'], PHP_URL_HOST);
+        if ($flag_url_host !== $site_url_host) {
+            $has_error = true;
+            break;
+        }
+    }
+
+    if ($has_error) {
+        error_log('WPU PLL Utilities: Detected invalid Polylang configuration. Please check that all languages have a flag set with a URL pointing to the same host as the site URL.');
+        delete_transient('pll_languages_list');
+        wp_redirect(site_url());
+        exit;
+    }
+});

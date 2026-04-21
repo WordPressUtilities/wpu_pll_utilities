@@ -32,7 +32,7 @@ WP_CLI::add_command('wpupll add_lang', function ($args) {
         WP_CLI::error('Slug already exists.');
     }
 
-    $args = array(
+    $lang_args = array(
         'term_group' => 0,
         'slug' => $slug,
         'flag' => $slug,
@@ -40,7 +40,7 @@ WP_CLI::add_command('wpupll add_lang', function ($args) {
         'name' => $name
     );
 
-    $result = PLL()->model->add_language($args);
+    $result = PLL()->model->add_language($lang_args);
 
     if ($result) {
         WP_CLI::success("Language '{$name}' ({$locale}) added.");
