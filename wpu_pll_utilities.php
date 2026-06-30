@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.8.0
+Version: 1.9.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.8.0');
+define('WPUPLLUTILITIES_VERSION', '1.9.0');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https://api-free.deepl.com';
@@ -154,6 +154,12 @@ class WPUPllUtilities {
                 'label' => sprintf('Hide %s', $lang['name']),
                 'box' => 'wpu_pll_utilities',
                 'type' => 'checkbox'
+            );
+        }
+        foreach ($poly_langs as $lang) {
+            $options['wpu_pll_utilities__hreflang__' . $lang['slug']] = array(
+                'label' => sprintf('Hreflang - %s', $lang['name']),
+                'box' => 'wpu_pll_utilities'
             );
         }
         return $options;
@@ -483,6 +489,35 @@ add_filter('pll_rel_hreflang_attributes', function ($hreflangs) {
     }
     return $hreflangs;
 }, 99, 1);
+
+/* ----------------------------------------------------------
+  Add custom hreflang attributes
+---------------------------------------------------------- */
+
+add_filter('pll_rel_hreflang_attributes', function ($hreflangs) {
+
+    /* Extract custom hreflangs */
+    $poly_langs = wpu_pll_utilities_get_languages();
+    $custom_hreflangs = array();
+    foreach ($poly_langs as $lang) {
+        $item = get_option('wpu_pll_utilities__hreflang__' . $lang['slug']);
+        if (!empty($item)) {
+            $custom_hreflangs[$lang['slug']] = wp_strip_all_tags($item);
+        }
+    }
+
+    /* Replace by custom hreflangs */
+    $new_hreflangs = array();
+    foreach ($hreflangs as $lang => $url) {
+        $new_id = $lang;
+        if (isset($custom_hreflangs[$lang])) {
+            $new_id = $custom_hreflangs[$lang];
+        }
+        $new_hreflangs[$new_id] = $url;
+    }
+
+    return $new_hreflangs;
+}, 101, 1);
 
 /* ----------------------------------------------------------
   Check invalid Polylang configuration on front
