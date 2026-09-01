@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.9.0
+Version: 1.9.1
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.9.0');
+define('WPUPLLUTILITIES_VERSION', '1.9.1');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https://api-free.deepl.com';
@@ -105,8 +105,10 @@ class WPUPllUtilities {
             // Send a POST request to Deepl API
             $this->api_endpoint_deepl = apply_filters('wpupllutilities__deepl_api_endpoint_deepl', $this->api_endpoint_deepl);
             $response = wp_remote_post($this->api_endpoint_deepl . '/v2/translate', array(
+                'headers' => array(
+                    'Authorization' => 'DeepL-Auth-Key ' . $deepl_api_key
+                ),
                 'body' => array(
-                    'auth_key' => $deepl_api_key,
                     'text' => $string,
                     'target_lang' => $lang,
                     'formality' => $formality
