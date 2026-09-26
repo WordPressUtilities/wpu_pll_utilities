@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.9.1
+Version: 1.9.2
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.9.1');
+define('WPUPLLUTILITIES_VERSION', '1.9.2');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https://api-free.deepl.com';
@@ -575,3 +575,9 @@ add_action('template_redirect', function () {
         exit;
     }
 });
+
+/* ----------------------------------------------------------
+  Fixes for fi_FI locale
+---------------------------------------------------------- */
+
+require_once __DIR__ . '/inc/fixes-fi_fi.php';
