@@ -17,6 +17,14 @@ function example_wpupllutilities__folders_to_scan($folders){
 }
 ```
 
+### Translated alt for images
+
+Only when Polylang media translation is disabled. Adds an alt field per language to images. On front, the alt of the current language is used, or the native alt if empty.
+
+```php
+add_filter('wpupllutilities__media_alt_enabled', '__return_true');
+```
+
 ## About
 
 * Big thanks to theme-translation-for-polylang.

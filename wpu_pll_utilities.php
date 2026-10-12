@@ -5,7 +5,7 @@ Plugin Name: WPU Pll Utilities
 Plugin URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Update URI: https://github.com/WordPressUtilities/wpu_pll_utilities
 Description: Utilities for Polylang
-Version: 1.9.2
+Version: 1.10.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_pll_utilities
@@ -16,7 +16,7 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
-define('WPUPLLUTILITIES_VERSION', '1.9.2');
+define('WPUPLLUTILITIES_VERSION', '1.10.0');
 
 class WPUPllUtilities {
     private $api_endpoint_deepl = 'https://api-free.deepl.com';
@@ -458,6 +458,12 @@ require_once __DIR__ . '/inc/live-translation.php';
 ---------------------------------------------------------- */
 
 require_once __DIR__ . '/inc/wpcli-commands.php';
+
+/* ----------------------------------------------------------
+  Translated media alt
+---------------------------------------------------------- */
+
+require_once __DIR__ . '/inc/media-alt.php';
 
 /* ----------------------------------------------------------
   Helper for lang selects
